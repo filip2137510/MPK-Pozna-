@@ -1,0 +1,186 @@
+.site-offline-admin .view:not(#administration-view),
+.site-offline-admin .main-nav,
+.site-offline-admin .topbar,
+.site-offline-admin .sidebar {
+  display: none !important;
+}
+
+.site-offline-admin .main-content {
+  padding-top: 28px;
+}
+
+.site-offline-public {
+  overflow: hidden !important;
+  height: 100vh !important;
+}
+
+.site-offline-public .offline-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100vw;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.site-offline-admin .offline-screen {
+  display: block;
+  padding: 42px 42px 42px 250px;
+  text-align: left;
+}
+
+.site-offline-admin {
+  overflow: hidden !important;
+  height: 100vh !important;
+}
+
+.offline-message {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  z-index: 2;
+  max-width: min(560px, calc(100vw - 48px));
+  padding: 11px 18px;
+  transform: translateX(-50%);
+  border: 1px solid #c8e3d3;
+  border-radius: 8px;
+  background: #eaf7ef;
+  color: #236541;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(24, 49, 70, .1);
+}
+
+.modal-backdrop {
+  z-index: 200 !important;
+}
+
+.site-offline-admin .offline-screen > :not(.offline-admin-panel) {
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.offline-admin-panel {
+  position: fixed;
+  left: 24px;
+  top: 24px;
+  bottom: 24px;
+  width: 198px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 17px;
+  background: #fff;
+  border: 1px solid #dbe4e5;
+  border-radius: 8px;
+  box-shadow: 0 16px 35px rgba(24,49,70,.14);
+  color: #000;
+}
+
+.offline-admin-panel[hidden] {
+  display: none;
+}
+
+.offline-admin-panel .eyebrow {
+  margin: 0;
+  color: #35a653;
+}
+
+.offline-admin-panel strong {
+  font-size: 16px;
+}
+
+.offline-admin-panel span {
+  color: #66747a;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.offline-message-label {
+  color: #66747a;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.offline-admin-panel textarea {
+  min-height: 76px;
+  resize: vertical;
+  padding: 9px;
+  border: 1px solid #b9c7cc;
+  border-radius: 5px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  font-size: 11px;
+}
+
+.offline-admin-panel textarea::placeholder {
+  color: #8a999f;
+}
+
+.admin-message-form {
+  display: grid;
+  gap: 13px;
+  max-width: 720px;
+}
+
+.admin-message-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.message-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.message-item {
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--paper);
+}
+
+.message-item p {
+  margin: 6px 0;
+  color: var(--muted);
+}
+
+.message-item small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.offline-admin-panel .primary-button {
+  margin-top: auto;
+}
+
+.composer-modal,
+.composer-modal label,
+.composer-modal .modal-copy,
+.composer-modal .form-hint {
+  color: #000 !important;
+}
+
+.composer-modal input,
+.composer-modal select,
+.composer-modal textarea {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #b9c7cc !important;
+}
+
+.composer-modal input::placeholder,
+.composer-modal textarea::placeholder {
+  color: #66747a !important;
+  opacity: 1;
+}
+
+body[data-theme="night"] .composer-modal {
+  background: #fff !important;
+  color: #000 !important;
+}

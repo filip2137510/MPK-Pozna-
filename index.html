@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="theme-color" content="#071a2d" />
+    <title>MPK Poznań | Sesje Roblox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="overrides.css" />
+  </head>
+  <body>
+    <noscript><div class="noscript-message">MPK Poznań wymaga włączonego JavaScriptu, aby obsługiwać sesje, motywy i panel administracyjny.</div></noscript>
+    <section class="offline-screen" id="offline-screen" hidden>
+      <div class="offline-mark">MPK</div>
+      <p class="eyebrow">BŁĄD 501</p>
+      <h1>Strona jest aktualnie wyłączona.</h1>
+      <p>Przepraszamy, trwa przerwa techniczna. Spróbuj ponownie później.</p>
+      <div class="offline-message" id="offline-message" hidden></div>
+      <button class="outline-button" id="offline-admin-login" type="button">Logowanie administracji</button>
+      <aside class="offline-admin-panel" id="offline-admin-panel" hidden>
+        <p class="eyebrow">PANEL ADMINISTRATORA</p>
+        <strong id="offline-admin-name">Administrator</strong>
+        <span>Jesteś zalogowany i możesz przywrócić stronę.</span>
+        <label class="offline-message-label" for="offline-message-input">Wiadomość dla odwiedzających</label>
+        <textarea id="offline-message-input" maxlength="180" placeholder="Np. Wracamy dziś o 18:00..."></textarea>
+        <button class="outline-button" id="offline-message-send" type="button">Wyślij wiadomość</button>
+        <button class="primary-button" id="offline-enable-site" type="button">Włącz stronę</button>
+      </aside>
+    </section>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img class="brand-logo" src="Zrzut ekranu 2026-05-28 162125.png" alt="Logo MPK Poznań" />
+          <div>
+            <strong>MPK<span> POZNAŃ</span></strong>
+            <small>POZNAŃ • ROBLOX</small>
+          </div>
+        </div>
+
+        <nav class="main-nav" aria-label="Główna nawigacja">
+          <button class="nav-item active" data-view="overview"><span class="nav-icon">▦</span> Pulpit</button>
+          <button class="nav-item" data-view="sessions"><span class="nav-icon">◉</span> Sesje Roblox <b class="nav-badge">4</b></button>
+          <button class="nav-item" data-view="mpk"><span class="nav-icon">▤</span> MPK Poznań</button>
+          <button class="nav-item" data-view="administration"><span class="nav-icon">⚙</span> Administracja <b class="nav-badge admin-badge">3</b></button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="server-status"><span class="status-dot"></span><div><small>STATUS SYSTEMU</small><strong>Wszystko działa</strong></div></div>
+          <div class="profile"><div class="avatar" id="profile-avatar">MK</div><div><strong id="profile-name">MotorniczyKuba</strong><small id="profile-role">Administrator</small></div><span class="more">•••</span></div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumbs"><span>MPK POZNAŃ</span><i>/</i><strong id="page-label">Pulpit</strong></div>
+          <div class="top-actions"><span class="live-pill"><span class="live-dot"></span> SYSTEM ONLINE</span><div class="theme-picker"><button class="icon-button theme-trigger" id="theme-trigger" aria-label="Zmień motyw" aria-expanded="false">◐</button><div class="theme-menu" id="theme-menu"><p>WYBIERZ MOTYW</p><button data-theme="ocean"><i class="theme-swatch ocean-swatch"></i> Oceaniczny</button><button data-theme="forest"><i class="theme-swatch forest-swatch"></i> Leśny</button><button data-theme="night"><i class="theme-swatch night-swatch"></i> Nocny</button></div></div><button class="primary-button small-button" id="admin-login-trigger" type="button">Zaloguj admin</button><button class="icon-button" aria-label="Powiadomienia">♢<span class="notification-dot"></span></button><button class="avatar small">MK</button></div>
+        </header>
+
+        <section class="view active-view" id="overview-view">
+          <div class="page-heading"><div><p class="eyebrow">CZWARTEK, 10 WRZEŚNIA 2026</p><h1>Witaj z powrotem, <span id="welcome-name">Kuba</span><span>.</span></h1><p class="subheading">Centrum dowodzenia Twojej społeczności MPK Poznań na Roblox.</p></div><button class="primary-button" data-open-composer><span>＋</span> Nowe ogłoszenie</button></div>
+
+          <div class="hero-grid">
+            <article class="network-card">
+              <div class="card-top"><div><p class="eyebrow light">MPK POZNAŃ • DANE DEMONSTRACYJNE</p><h2>Sieć działa <span class="green-text">płynnie.</span></h2></div><button class="refresh-button" id="refresh-data" title="Odśwież dane">↻</button></div>
+              <div class="network-visual" aria-label="Schematyczny widok sieci komunikacyjnej"><div class="map-line line-a"></div><div class="map-line line-b"></div><div class="map-line line-c"></div><span class="map-stop stop-1"></span><span class="map-stop stop-2"></span><span class="map-stop stop-3"></span><span class="map-stop stop-4"></span><span class="map-stop stop-5"></span><div class="tram-label">T2</div><div class="tram-label second">T10</div></div>
+              <div class="network-footer"><div><strong>47</strong><span>linii w ruchu</span></div><div><strong>98<span>%</span></strong><span>punktualności</span></div><div><strong>12<span>°</span></strong><span>temperatura</span></div><small>Aktualizacja: <span id="last-update">09:42:18</span></small></div>
+            </article>
+            <article class="next-session-card" id="next-session-card" hidden><div class="card-top"><p class="eyebrow">NAJBLIŻSZA SESJA</p><span class="session-live"><span class="live-dot"></span> WKRÓTCE</span></div><h3>Twoja następna sesja<br /><span>pojawi się tutaj</span></h3><div class="session-footer"><span class="muted">Dodaj sesję w centrum ogłoszeń.</span><button class="text-button" data-view-target="sessions">Zobacz sesje →</button></div></article>
+          </div>
+
+          <div class="section-heading"><div><h2>Ostatnie ogłoszenia</h2><p>Komunikaty widoczne dla całej ekipy.</p></div><button class="text-button" data-view-target="sessions">Wszystkie ogłoszenia →</button></div>
+          <div class="announcement-grid" id="announcement-list"></div>
+        </section>
+
+        <section class="view" id="sessions-view">
+          <div class="page-heading"><div><p class="eyebrow">CENTRUM SPOŁECZNOŚCI</p><h1>Sesje Roblox<span>.</span></h1><p class="subheading">Planuj przejazdy, zbieraj ekipę i publikuj ważne komunikaty.</p></div><button class="primary-button" data-open-composer><span>＋</span> Nowe ogłoszenie</button></div>
+          <div class="sessions-toolbar"><div class="filter-tabs"><button class="filter-tab active" data-filter="all">Wszystkie <b>0</b></button><button class="filter-tab" data-filter="session">Sesje <b>0</b></button><button class="filter-tab" data-filter="notice">Komunikaty <b>0</b></button></div><div class="search-box">⌕ <input id="search-input" type="search" placeholder="Szukaj ogłoszeń..." /></div></div>
+          <div class="announcement-grid full-grid" id="all-announcements"></div>
+        </section>
+
+        <section class="view" id="mpk-view">
+          <div class="page-heading"><div><p class="eyebrow">INFORMACJE OPERACYJNE</p><h1>MPK Poznań<span>.</span></h1><p class="subheading">Szybki podgląd danych przydatnych podczas sesji w Roblox.</p></div><button class="outline-button" id="refresh-mpk">↻ Odśwież dane</button></div>
+          <div class="mpk-panels"><article class="info-panel"><div class="panel-heading"><h2>Status linii</h2><span class="chip green">● Bez utrudnień</span></div><div class="line-row"><strong>T2</strong><span>Os. Sobieskiego — Dębiec</span><b class="green-text">Normalnie</b></div><div class="line-row"><strong>T10</strong><span>Połabska — Górczyn</span><b class="amber-text">+3 min</b></div><div class="line-row"><strong>201</strong><span>Junak — Rondo Rataje</span><b class="green-text">Normalnie</b></div><div class="line-row"><strong>174</strong><span>Dworzec — Garbary</span><b class="green-text">Normalnie</b></div></article><article class="info-panel departure-panel"><div class="panel-heading"><h2>Najbliższe odjazdy</h2><span class="muted">Rondo Kaponiera</span></div><div class="departure-row"><strong>T2</strong><span>kier. Dębiec</span><b>3 min</b></div><div class="departure-row"><strong>18</strong><span>kier. Franowo</span><b>8 min</b></div><div class="departure-row"><strong>201</strong><span>kier. Junikowo</span><b>12 min</b></div><div class="departure-row"><strong>174</strong><span>kier. Garbary</span><b>17 min</b></div></article></div>
+          <div class="source-note">Dane na tej stronie są makietą do wykorzystania w społeczności Roblox. Przed publikacją produkcyjną podłącz oficjalne źródła MPK Poznań.</div>
+        </section>
+
+        <section class="view" id="administration-view">
+          <div class="page-heading"><div><p class="eyebrow">KONTROLA DOSTĘPU</p><h1>Administracja<span>.</span></h1><p class="subheading">Zarządzaj osobami, które mogą publikować i moderować MPK Hub.</p></div><button class="primary-button" data-open-admin-composer><span>＋</span> Dodaj użytkownika</button></div>
+          <article class="admin-panel site-status-panel"><div class="panel-heading"><div><h2>Dostępność strony</h2><p class="panel-caption">Wyłącz stronę dla graczy na czas przerwy technicznej.</p></div><label class="status-toggle"><input id="site-status-toggle" type="checkbox" checked /><span></span><strong id="site-status-label">Strona online</strong></label></div><p class="form-hint">Po wyłączeniu gracze zobaczą błąd 501. Administratorzy nadal mogą się zalogować i włączyć stronę ponownie.</p></article>
+          <div class="admin-summary"><div class="summary-card"><span class="summary-icon">◉</span><div><strong id="admin-count">3</strong><span>aktywnych administratorów</span></div></div><div class="summary-card"><span class="summary-icon coral-icon">◌</span><div><strong>2</strong><span>role z uprawnieniami</span></div></div><div class="summary-card"><span class="summary-icon green-icon">✓</span><div><strong>100%</strong><span>bezpieczeństwa dostępu</span></div></div></div>
+          <article class="admin-panel message-panel"><div class="panel-heading"><div><h2>Wiadomości dla społeczności</h2><p class="panel-caption">Wyślij komunikat widoczny dla użytkowników strony.</p></div></div><form id="message-form" class="admin-message-form"><label>Tytuł wiadomości<input name="title" required maxlength="70" placeholder="Np. Ważny komunikat" /></label><label>Treść wiadomości<textarea name="content" required maxlength="300" placeholder="Wpisz treść wiadomości..."></textarea></label><div class="form-actions"><button type="submit" class="primary-button">Wyślij wiadomość</button></div></form><div id="message-list" class="message-list"></div></article>
+          <article class="admin-panel"><div class="panel-heading"><div><h2>Użytkownicy administracji</h2><p class="panel-caption">Osoby z dostępem do zarządzania stroną.</p></div><span class="chip green">● Ochrona aktywna</span></div><div class="admin-table-head"><span>UŻYTKOWNIK</span><span>ROLA</span><span>OSTATNIA AKTYWNOŚĆ</span><span>STATUS</span><span></span></div><div id="admin-list"></div></article>
+          <div class="source-note">To jest lokalny panel demonstracyjny. W wersji produkcyjnej role i logowanie powinny być obsługiwane przez backend oraz uprawnienia serwera Roblox.</div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="composer-modal" aria-hidden="true"><div class="composer-modal" role="dialog" aria-modal="true" aria-labelledby="composer-title"><button class="close-modal" data-close-composer aria-label="Zamknij">×</button><p class="eyebrow">NOWY WPIS W SPOŁECZNOŚCI</p><h2 id="composer-title">Stwórz ogłoszenie<span>.</span></h2><p class="modal-copy">Daj znać ekipie, co dzieje się na serwerze.</p><form id="announcement-form"><label>Typ ogłoszenia<select name="type"><option value="session">Sesja Roblox</option><option value="notice">Komunikat</option></select></label><label>Tytuł ogłoszenia<input name="title" required maxlength="70" placeholder="np. Wieczorny przejazd linią 201" /></label><div class="form-row"><label>Data i godzina<input name="date" required type="datetime-local" /></label><label>Liczba miejsc<input name="spots" required type="number" min="1" max="100" value="20" /></label></div><label>Opis<textarea name="description" required maxlength="180" placeholder="Napisz kilka słów dla uczestników..."></textarea></label><div class="form-actions"><button type="button" class="outline-button" data-close-composer>Anuluj</button><button type="submit" class="primary-button">Opublikuj ogłoszenie</button></div></form></div></div>
+    <div class="modal-backdrop" id="admin-composer-modal" aria-hidden="true"><div class="composer-modal" role="dialog" aria-modal="true" aria-labelledby="admin-composer-title"><button class="close-modal" data-close-admin-composer aria-label="Zamknij">×</button><p class="eyebrow">NOWE KONTO ZESPOŁU</p><h2 id="admin-composer-title">Utwórz konto<span>.</span></h2><p class="modal-copy">Dodaj użytkownika, który otrzyma dostęp do panelu.</p><form id="admin-form"><label>Nazwa użytkownika Roblox<input name="username" required maxlength="30" placeholder="np. Poznan_Motorniczy" /></label><label>Adres e-mail<input name="email" required type="email" placeholder="motorniczy@example.com" /></label><div class="form-row"><label>Hasło tymczasowe<div class="password-field"><input name="password" required minlength="8" type="password" placeholder="Minimum 8 znaków" /><button type="button" class="password-toggle" data-toggle-password aria-label="Pokaż hasło">Pokaż</button></div></label><label>Rola<select name="role"><option value="Moderator">Moderator</option><option value="Administrator">Administrator</option></select></label></div><p class="form-hint">Przekaż hasło użytkownikowi bezpiecznym kanałem i poproś o zmianę przy pierwszym logowaniu.</p><div class="form-actions"><button type="button" class="outline-button" data-close-admin-composer>Anuluj</button><button type="submit" class="primary-button">Utwórz konto</button></div></form></div></div>
+    <div class="modal-backdrop" id="login-modal" aria-hidden="true"><div class="composer-modal login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><button class="close-modal" data-close-login aria-label="Zamknij">×</button><p class="eyebrow">DOSTĘP ADMINISTRATORA</p><h2 id="login-title">Zaloguj się<span>.</span></h2><p class="modal-copy">Wprowadź dane dostępu do panelu administracyjnego.</p><form id="admin-login-form"><label>Adres e-mail<input name="login-email" required type="email" placeholder="admin@mpk.test" /></label><label>Hasło<div class="password-field"><input name="login-password" required type="password" placeholder="Wpisz hasło" /><button type="button" class="password-toggle" data-toggle-login-password aria-label="Pokaż hasło">Pokaż</button></div></label><div class="form-actions"><button type="button" class="outline-button" data-close-login>Anuluj</button><button type="submit" class="primary-button">Zaloguj się</button></div></form></div></div>
+    <div class="toast" id="toast" role="status"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
