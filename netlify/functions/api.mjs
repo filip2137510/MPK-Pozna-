@@ -32,7 +32,7 @@ export default async function handler(request) {
     const body = request.method === 'POST' ? await request.json() : {};
     const action = body.action || new URL(request.url).searchParams.get('action') || 'status';
     if (action === 'status') {
-      const storedStatus = await store.get('site-status');
+      const storedStatus = await store.get('site-status-v2');
       const message = await store.get('offline-message');
       return response(200, { online: storedStatus !== 'false' && storedStatus !== false, message: message || '' });
     }
@@ -82,7 +82,7 @@ export default async function handler(request) {
       return response(200, { ok: true });
     }
     if (action === 'set-status') {
-      await store.set('site-status', body.online ? 'true' : 'false');
+      await store.set('site-status-v2', body.online ? 'true' : 'false');
       return response(200, { online: Boolean(body.online) });
     }
     if (action === 'set-offline-message') {
