@@ -21,7 +21,8 @@ async function getAdmins() {
 }
 
 async function getSession(request) {
-  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+  const authorization = request.headers.get('authorization') || '';
+  const token = authorization.replace(/^Bearer\s+/i, '');
   return token ? store.get(`session:${token}`, { type: 'json' }) : null;
 }
 
