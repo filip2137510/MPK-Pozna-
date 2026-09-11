@@ -31,7 +31,7 @@ export default async function handler(request) {
     const body = request.method === 'POST' ? await request.json() : {};
     const action = body.action || new URL(request.url).searchParams.get('action') || 'status';
     if (action === 'status') {
-      const storedStatus = await store.get('site-online');
+      const storedStatus = await store.get('site-status');
       const message = await store.get('offline-message');
       return response(200, { online: storedStatus !== 'false' && storedStatus !== false, message: message || '' });
     }
@@ -71,8 +71,17 @@ export default async function handler(request) {
       await store.setJSON('admins', admins);
       return response(200, { ok: true });
     }
+    if (action === 'delete-admin') {
+      const email = String(body.email || '').trim().toLowerCase();
+      const admins = await getAdmins();
+      const target = admins.find(item => item.email.toLowerCase() === email);
+      if (!target) return response(404, { error: 'Nie znaleziono użytkownika' });
+      if (target.username.toLowerCase() === session.username.toLowerCase()) return response(400, { error: 'Nie możesz usunąć własnego konta' });
+      await store.setJSON('admins', admins.filter(item => item.email.toLowerCase() !== email));
+      return response(200, { ok: true });
+    }
     if (action === 'set-status') {
-      await store.set('site-online', body.online ? 'true' : 'false');
+      await store.set('site-status', body.online ? 'true' : 'false');
       return response(200, { online: Boolean(body.online) });
     }
     if (action === 'set-offline-message') {

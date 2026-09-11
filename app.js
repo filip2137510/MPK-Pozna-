@@ -65,17 +65,19 @@ async function syncSharedState() {
     if (!siteOnline && currentAdmin) adminOfflineAccess = true;
     offlineMessage = status.message || '';
     writeStorage('mpkSiteOnline', String(siteOnline));
-    if (apiToken) {
-      const result = await apiRequest('admins');
-      admins = result.admins;
-      renderAdmins();
-      const messageResult = await apiRequest('messages');
-      adminMessages = messageResult.messages;
-      renderAdminMessages();
-    }
     updateSiteStatus();
   } catch (error) {
     updateSiteStatus();
+  }
+  if (!apiToken) return;
+  const [adminsResult, messagesResult] = await Promise.allSettled([apiRequest('admins'), apiRequest('messages')]);
+  if (adminsResult.status === 'fulfilled') {
+    admins = adminsResult.value.admins;
+    renderAdmins();
+  }
+  if (messagesResult.status === 'fulfilled') {
+    adminMessages = messagesResult.value.messages;
+    renderAdminMessages();
   }
 }
 
@@ -134,11 +136,23 @@ function renderAdmins() {
   document.querySelector('#admin-count').textContent = admins.length;
   document.querySelector('.admin-badge').textContent = admins.length;
   document.querySelector('#admin-list').innerHTML = admins.map((admin, index) => `<div class="admin-row"><div class="admin-user"><div class="avatar ${admin.color}">${escapeHtml(admin.initials)}</div><strong>${escapeHtml(admin.username)}</strong></div><span class="role-pill ${admin.role === 'Administrator' ? 'administrator' : ''}">${escapeHtml(admin.role)}</span><span class="activity-time">${escapeHtml(admin.activity)}</span><span class="online-status"><i></i> Aktywny</span><button class="remove-admin" data-admin-index="${index}" aria-label="Usuń użytkownika ${escapeHtml(admin.username)}">×</button></div>`).join('');
-  document.querySelectorAll('.remove-admin').forEach(button => button.addEventListener('click', () => {
-    const removed = admins.splice(Number(button.dataset.adminIndex), 1)[0];
-    writeStorage('mpkAdmins', JSON.stringify(admins));
-    renderAdmins();
-    showToast(`Usunięto ${removed.username} z administracji`);
+  document.querySelectorAll('.remove-admin').forEach(button => button.addEventListener('click', async () => {
+    const removed = admins[Number(button.dataset.adminIndex)];
+    if (!removed) return;
+    if (currentAdmin && removed.username.toLowerCase() === currentAdmin.username.toLowerCase()) {
+      showToast('Nie możesz usunąć własnego konta');
+      return;
+    }
+    if (!window.confirm(`Usunąć użytkownika ${removed.username} z administracji?`)) return;
+    try {
+      await apiRequest('delete-admin', { email: removed.email });
+      admins = admins.filter(admin => admin.email !== removed.email);
+      writeStorage('mpkAdmins', JSON.stringify(admins));
+      renderAdmins();
+      showToast(`Usunięto ${removed.username} z administracji`);
+    } catch (error) {
+      showToast(error.message || 'Nie udało się usunąć użytkownika');
+    }
   }));
 }
 
