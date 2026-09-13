@@ -24,29 +24,84 @@ function readJsonStorage(key, fallback = null) {
   }
 }
 
+function getLocalAdminSession() {
+  const stored = readJsonStorage('mpkAdminSession');
+  return currentAdmin || stored || null;
+}
+
+function localApiRequest(action, payload = {}) {
+  const session = getLocalAdminSession();
+  if (action === 'status') {
+    return { online: readStorage('mpkSiteOnline') !== 'false', message: readStorage('mpkOfflineMessage') || '' };
+  }
+  if (action === 'public-message') {
+    const message = readJsonStorage('mpkPublicMessage') || readJsonStorage('mpkMessages', [])[0] || null;
+    return { message };
+  }
+  if (action === 'admins') {
+    return { admins: (readJsonStorage('mpkAdmins', admins) || []).map(({ password, ...admin }) => admin) };
+  }
+  if (action === 'messages') {
+    return { messages: readJsonStorage('mpkMessages', []) };
+  }
+  if (action === 'create-message') {
+    if (!session || !['Moderator', 'Administrator', 'Właściciel'].includes(session.role)) {
+      throw new Error('Tylko administracja może wysyłać wiadomości');
+    }
+    const title = String(payload.title || '').trim().slice(0, 70);
+    const content = String(payload.content || '').trim().slice(0, 300);
+    if (!title || !content) throw new Error('Tytuł i treść wiadomości są wymagane');
+    const displayMode = payload.displayMode === 'modal' ? 'modal' : 'bar';
+    const message = { title, content, displayMode, author: session.username, date: new Date().toLocaleString('pl-PL') };
+    const nextMessages = [message, ...(readJsonStorage('mpkMessages', []) || [])].slice(0, 50);
+    writeStorage('mpkMessages', JSON.stringify(nextMessages));
+    writeStorage('mpkPublicMessage', JSON.stringify(message));
+    return { message };
+  }
+  if (action === 'set-offline-message') {
+    const message = String(payload.message || '').trim().slice(0, 180);
+    writeStorage('mpkOfflineMessage', message);
+    return { message };
+  }
+  if (action === 'set-status') {
+    const online = Boolean(payload.online);
+    writeStorage('mpkSiteOnline', String(online));
+    return { online };
+  }
+  throw new Error('Nieznana operacja');
+}
+
 const saved = readJsonStorage('mpkAnnouncements');
 let announcements = (saved || defaultAnnouncements).filter(item => !demoAnnouncementTitles.has(item.title));
 writeStorage('mpkAnnouncements', JSON.stringify(announcements));
 const defaultAdmins = [
-  { username: 'MotorniczyKuba', email: 'admin@mpk.test', password: 'admin123', role: 'Administrator', activity: 'Teraz', initials: 'MK', color: 'coral' },
+  { username: 'MotorniczyKuba', email: 'admin@mpk.test', password: 'admin123', role: 'Właściciel', activity: 'Teraz', initials: 'MK', color: 'coral' },
   { username: 'Olek_Tramwaj', email: 'moderator@mpk.test', password: 'mod1234', role: 'Moderator', activity: 'Dzisiaj, 09:18', initials: 'OT', color: 'blue' },
   { username: 'Zarzad_MPK', email: 'zarzad@mpk.test', password: 'zarzad123', role: 'Moderator', activity: 'Wczoraj, 21:42', initials: 'ZM', color: 'green' }
 ];
 const savedAdmins = readJsonStorage('mpkAdmins');
-let admins = savedAdmins || defaultAdmins;
+let admins = (savedAdmins || defaultAdmins).map(admin => admin.email?.toLowerCase() === 'filip@gmail.com' ? { ...admin, role: 'Właściciel' } : admin);
 const labels = { overview: 'Pulpit', sessions: 'Sesje Roblox', mpk: 'MPK Poznań', administration: 'Administracja' };
 const typeLabels = { session: 'SESJA ROBLOX', notice: 'KOMUNIKAT' };
 const savedTheme = readStorage('mpkTheme') || 'ocean';
 const savedAdminSession = readJsonStorage('mpkAdminSession');
 let currentAdmin = savedAdminSession;
-let siteOnline = true;
+let siteOnline = readStorage('mpkSiteOnline') !== 'false';
 let adminOfflineAccess = Boolean(currentAdmin);
 let apiToken = readStorage('mpkApiToken') || '';
-let offlineMessage = '';
-let adminMessages = [];
+let offlineMessage = readStorage('mpkOfflineMessage') || '';
+let adminMessages = readJsonStorage('mpkMessages', []);
+let mpkAnnouncements = readJsonStorage('mpkAnnouncementsShared', []);
+let ztmAnnouncements = readJsonStorage('ztmAnnouncementsShared', []);
+let mpkAnnouncementsKey = '';
+let publicMessageKey = '';
+let savedPublicMessage = readJsonStorage('mpkPublicMessage');
 
 async function apiRequest(action, payload = {}) {
-  const endpoint = action === 'status' ? `/.netlify/functions/api?statusCheck=${Date.now()}` : '/.netlify/functions/api';
+  if (String(apiToken).startsWith('local-')) {
+    return localApiRequest(action, payload);
+  }
+  const endpoint = action === 'status' ? `/api?statusCheck=${Date.now()}` : '/api';
   const response = await fetch(endpoint, {
     method: 'POST',
     cache: 'no-store',
@@ -60,10 +115,39 @@ async function apiRequest(action, payload = {}) {
 
 async function syncSharedState() {
   try {
+    const publicResult = await apiRequest('public-message');
+    if (publicResult.message) {
+      savedPublicMessage = publicResult.message;
+      writeStorage('mpkPublicMessage', JSON.stringify(savedPublicMessage));
+      showPublicMessage(publicResult.message);
+    } else if (savedPublicMessage || adminMessages[0]) showPublicMessage(savedPublicMessage || adminMessages[0]);
+  } catch (error) {
+    if (savedPublicMessage || adminMessages[0]) showPublicMessage(savedPublicMessage || adminMessages[0]);
+  }
+  try {
+    const result = await apiRequest('mpk-announcements');
+    mpkAnnouncements = result.announcements || [];
+    writeStorage('mpkAnnouncementsShared', JSON.stringify(mpkAnnouncements));
+    renderMpkAnnouncements();
+  } catch (error) {
+    mpkAnnouncements = [];
+    renderMpkAnnouncements();
+  }
+  try {
+    const result = await apiRequest('ztm-announcements');
+    ztmAnnouncements = result.announcements || [];
+    writeStorage('ztmAnnouncementsShared', JSON.stringify(ztmAnnouncements));
+    renderZtmAnnouncements();
+  } catch (error) {
+    ztmAnnouncements = [];
+    renderZtmAnnouncements();
+  }
+  try {
     const status = await apiRequest('status');
-    siteOnline = status.online;
+    const savedOfflineStatus = readStorage('mpkSiteOnline') === 'false';
+    siteOnline = savedOfflineStatus && status.online ? false : status.online;
     if (!siteOnline && currentAdmin) adminOfflineAccess = true;
-    offlineMessage = status.message || '';
+    offlineMessage = status.message || readStorage('mpkOfflineMessage') || '';
     writeStorage('mpkSiteOnline', String(siteOnline));
     updateSiteStatus();
   } catch (error) {
@@ -78,6 +162,41 @@ async function syncSharedState() {
   if (messagesResult.status === 'fulfilled') {
     adminMessages = messagesResult.value.messages;
     renderAdminMessages();
+  }
+}
+
+function renderMpkAnnouncements() {
+  const list = document.querySelector('#mpk-announcement-list');
+  if (!list) return;
+  list.innerHTML = mpkAnnouncements.length ? mpkAnnouncements.slice(0, 4).map(item => `<article class="mpk-announcement"><p class="eyebrow">OFICJALNY KOMUNIKAT MPK POZNAŃ</p><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.content)}</p><small>${escapeHtml(item.date)} ${item.link ? `· <a href="${escapeHtml(item.link)}" target="_blank" rel="noopener">Źródło MPK</a>` : ''}</small></article>`).join('') : '<p class="empty-state">Brak aktualnych ogłoszeń MPK Poznań.</p>';
+}
+
+function renderZtmAnnouncements() {
+  const list = document.querySelector('#ztm-announcement-list');
+  if (!list) return;
+  list.innerHTML = ztmAnnouncements.length ? ztmAnnouncements.slice(0, 4).map(item => `<article class="mpk-announcement ztm-announcement"><p class="eyebrow">OFICJALNY KOMUNIKAT ZTM</p><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.content)}</p><small>${escapeHtml(item.date)} ${item.link ? `· <a href="${escapeHtml(item.link)}" target="_blank" rel="noopener">Źródło ZTM</a>` : ''}</small></article>`).join('') : '<p class="empty-state">Brak aktualnych ogłoszeń ZTM.</p>';
+}
+
+function showPublicMessage(message) {
+  const key = `${message.date}-${message.title}-${message.content}`;
+  if (key === publicMessageKey) return;
+  publicMessageKey = key;
+  const messageBar = document.querySelector('#public-message-bar');
+  const messageModal = document.querySelector('#public-message-modal');
+  if (messageBar) messageBar.hidden = message.displayMode === 'modal';
+  if (messageModal) messageModal.hidden = message.displayMode !== 'modal';
+  if (message.displayMode === 'modal') {
+    document.querySelector('#public-message-title').textContent = message.title;
+    document.querySelector('#public-message-content').textContent = message.content;
+    document.querySelector('#public-message-meta').textContent = `${message.date} · ${message.author}`;
+    if (messageModal) messageModal.setAttribute('aria-hidden', 'false');
+    return;
+  }
+  if (messageBar) {
+    document.querySelector('#public-message-bar-title').textContent = message.title;
+    document.querySelector('#public-message-bar-content').textContent = message.content;
+    document.querySelector('#public-message-bar-meta').textContent = `${message.date} · ${message.author}`;
+    messageBar.hidden = false;
   }
 }
 
@@ -135,7 +254,7 @@ function removeAnnouncement(index) {
 function renderAdmins() {
   document.querySelector('#admin-count').textContent = admins.length;
   document.querySelector('.admin-badge').textContent = admins.length;
-  document.querySelector('#admin-list').innerHTML = admins.map((admin, index) => `<div class="admin-row"><div class="admin-user"><div class="avatar ${admin.color}">${escapeHtml(admin.initials)}</div><strong>${escapeHtml(admin.username)}</strong></div><span class="role-pill ${admin.role === 'Administrator' ? 'administrator' : ''}">${escapeHtml(admin.role)}</span><span class="activity-time">${escapeHtml(admin.activity)}</span><span class="online-status"><i></i> Aktywny</span><button class="remove-admin" data-admin-index="${index}" aria-label="Usuń użytkownika ${escapeHtml(admin.username)}">×</button></div>`).join('');
+  document.querySelector('#admin-list').innerHTML = admins.map((admin, index) => `<div class="admin-row"><div class="admin-user"><div class="avatar ${admin.color}">${escapeHtml(admin.initials)}</div><strong>${escapeHtml(admin.username)}</strong></div><span class="role-pill ${admin.role === 'Administrator' || admin.role === 'Właściciel' ? 'administrator' : ''}">${escapeHtml(admin.role)}</span><span class="activity-time">${escapeHtml(admin.activity)}</span><span class="online-status"><i></i> Aktywny</span>${currentAdmin?.role === 'Właściciel' ? `<button class="remove-admin" data-admin-index="${index}" aria-label="Usuń użytkownika ${escapeHtml(admin.username)}">×</button>` : ''}</div>`).join('');
   document.querySelectorAll('.remove-admin').forEach(button => button.addEventListener('click', async () => {
     const removed = admins[Number(button.dataset.adminIndex)];
     if (!removed) return;
@@ -145,7 +264,7 @@ function renderAdmins() {
     }
     if (!window.confirm(`Usunąć użytkownika ${removed.username} z administracji?`)) return;
     try {
-      await apiRequest('delete-admin', { email: removed.email });
+      if (apiToken) await apiRequest('delete-admin', { email: removed.email });
       admins = admins.filter(admin => admin.email !== removed.email);
       writeStorage('mpkAdmins', JSON.stringify(admins));
       renderAdmins();
@@ -177,6 +296,9 @@ function updateAdminLoginButton() {
 function updateAnnouncementControls() {
   document.querySelectorAll('[data-open-composer]').forEach(button => {
     button.hidden = !currentAdmin;
+  });
+  document.querySelectorAll('[data-admin-only]').forEach(element => {
+    element.hidden = !currentAdmin;
   });
 }
 
@@ -289,9 +411,19 @@ document.querySelector('#offline-message-send').addEventListener('click', async 
   try {
     const result = await apiRequest('set-offline-message', { message });
     offlineMessage = result.message;
+    writeStorage('mpkOfflineMessage', offlineMessage);
     updateOfflineMessage();
     showToast('Wiadomość została wysłana');
   } catch (error) {
+    if (currentAdmin || readJsonStorage('mpkAdminSession')) {
+      apiToken = '';
+      writeStorage('mpkApiToken', '');
+      offlineMessage = message;
+      writeStorage('mpkOfflineMessage', offlineMessage);
+      updateOfflineMessage();
+      showToast('Wiadomość została wysłana');
+      return;
+    }
     showToast(error.message || 'Nie udało się wysłać wiadomości');
   }
 });
@@ -403,15 +535,36 @@ document.querySelector('#admin-form').addEventListener('submit', async event => 
 document.querySelector('#message-form').addEventListener('submit', async event => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
+  const rememberedAdmin = currentAdmin || readJsonStorage('mpkAdminSession');
+  if (rememberedAdmin && !currentAdmin) {
+    currentAdmin = rememberedAdmin;
+    updateAdminLoginButton();
+    updateAdminProfile();
+  }
+  const canSendMessage = rememberedAdmin && ['Moderator', 'Administrator', 'Właściciel'].includes(rememberedAdmin.role);
+  if (!canSendMessage) {
+    showToast('Tylko administracja może wysyłać wiadomości');
+    return;
+  }
   try {
-    const result = await apiRequest('create-message', { title: form.get('title'), content: form.get('content') });
+    const result = await apiRequest('create-message', { title: form.get('title'), content: form.get('content'), displayMode: form.get('displayMode') });
     adminMessages = [result.message, ...adminMessages];
+    writeStorage('mpkMessages', JSON.stringify(adminMessages.slice(0, 50)));
+    savedPublicMessage = result.message;
+    writeStorage('mpkPublicMessage', JSON.stringify(savedPublicMessage));
+    showPublicMessage(result.message);
     renderAdminMessages();
     event.currentTarget.reset();
     showToast('Wiadomość została wysłana');
   } catch (error) {
     showToast(error.message || 'Nie udało się wysłać wiadomości');
   }
+});
+
+document.querySelector('#close-public-message').addEventListener('click', () => {
+  const modal = document.querySelector('#public-message-modal');
+  modal.hidden = true;
+  modal.setAttribute('aria-hidden', 'true');
 });
 
 document.querySelector('#admin-login-form').addEventListener('submit', async event => {
@@ -429,6 +582,8 @@ document.querySelector('#admin-login-form').addEventListener('submit', async eve
     admins = sharedAdmins.admins;
     renderAdmins();
   } catch (error) {
+    apiToken = '';
+    writeStorage('mpkApiToken', '');
     const admin = admins.find(item => item.email && item.email.toLowerCase() === email && item.password === password);
     if (!admin) {
       showToast(error.message || 'Błędny e-mail lub hasło');
@@ -438,6 +593,8 @@ document.querySelector('#admin-login-form').addEventListener('submit', async eve
   }
   currentAdmin = loggedAdmin;
   adminOfflineAccess = true;
+  apiToken = apiToken || `local-${Date.now()}`;
+  writeStorage('mpkApiToken', apiToken);
   writeStorage('mpkAdminSession', JSON.stringify(currentAdmin));
   updateAdminLoginButton();
   updateAdminProfile();

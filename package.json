@@ -1,6 +1,6 @@
 {
   "private": true,
-  "dependencies": {
-    "@netlify/blobs": "^9.0.0"
+  "devDependencies": {
+    "vercel": "latest"
   }
 }

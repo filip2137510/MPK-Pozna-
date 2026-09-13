@@ -1,2 +1,5 @@
-# Local Netlify folder
+# Local deployment folders
 .netlify
+.vercel
+.env.local
+.local-data
